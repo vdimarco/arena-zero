@@ -1,19 +1,23 @@
-"""BZ-303: landing page with four A/B hero variants and an embedded live
-demo artifact (no login).
+"""BZ-303: the Brier Zero site — four A/B hero variants, one editorial design.
 
-`render_variant` builds one variant; `render_all` returns the four pages
-plus a router page that assigns a visitor a sticky variant (?v= override,
-localStorage persistence) and records the assignment for the funnel.
-Waitlist submissions POST to whatever endpoint is configured — or fall
-back to a mailto: so the static page works with zero backend.
+Design language ("the midnight briefing"): committed dark situation-room
+palette (ink blue-black ground, phosphor-amber accent), Newsreader serif as
+the briefing voice (embedded as data URIs — no CDN), monospace for data and
+eyebrows, and the product thesis as the hero graphic: the map line and the
+territory line pulling apart. Everything is still one self-contained file
+per variant: no external requests, no backend, works as an email attachment.
+
+`render_all` returns the sticky A/B router plus the four variant pages;
+`render_artifact_preview` returns a skeleton-less version for artifact hosts.
 """
 
 from __future__ import annotations
 
+import base64
 import json
 from dataclasses import dataclass
+from pathlib import Path
 
-from . import base
 from .base import esc
 
 _QUALIFY_QUESTIONS = [
@@ -39,25 +43,25 @@ VARIANTS = [
     HeroVariant(
         key="a", name="The Apple Case",
         headline="Know what your employees know. Before they leak it.",
-        subline="Your people see failure years before your dashboard does. Brier Zero gives them "
-                "a safe, pseudonymous way to price it into an internal market — so you get the "
-                "signal and the journalist doesn't.",
-        cta="Get the internal truth layer",
+        subline="Your people see failure years before your dashboard does. Brier Zero gives "
+                "them a pseudonymous way to price it into an internal market — you get the "
+                "signal, the journalist doesn't.",
+        cta="Request a pilot briefing",
     ),
     HeroVariant(
         key="b", name="Map is Not Territory",
-        headline="Your dashboard is a map. The market is the territory.",
-        subline="Brier Zero detects where your roadmap diverges from reality — scoring every "
-                "plan against agent-discovered ground truth before you build a quarter on a "
-                "bad assumption.",
-        cta="Score my map",
+        headline="Your dashboard says 90%. The market says 35%.",
+        subline="Brier Zero runs an internal prediction market traded only by research "
+                "agents — and calibrated by the people who actually know. It finds the gap "
+                "between your roadmap and reality before the write-off, and before the leak.",
+        cta="Request a pilot briefing",
     ),
     HeroVariant(
         key="c", name="Artifact-Native",
         headline="Intelligence should be an artifact, not a conversation.",
-        subline="Every Brier Zero market produces a self-contained interactive HTML artifact — "
-                "progressive disclosure from executive summary to raw audit trail. Email it, "
-                "archive it, open it anywhere. No login, no platform.",
+        subline="Every market produces one self-contained interactive file — executive "
+                "summary to raw audit trail in four clicks. Email it to your board. Archive "
+                "it for compliance. No login. No platform.",
         cta="Open a live artifact",
     ),
     HeroVariant(
@@ -65,9 +69,179 @@ VARIANTS = [
         headline="The prediction market for people who can't trust their own roadmap.",
         subline="Autonomous research agents trade probabilities on your real questions, are "
                 "scored by Brier score, and get better every time they're wrong.",
-        cta="Join the waitlist",
+        cta="Join the pilot waitlist",
     ),
 ]
+
+_ASSETS = Path(__file__).parent / "assets"
+
+
+def _font_css() -> str:
+    """Newsreader as data URIs — the site must not phone home for fonts."""
+    def data_uri(name: str) -> str:
+        raw = (_ASSETS / name).read_bytes()
+        return "data:font/woff2;base64," + base64.b64encode(raw).decode()
+
+    return f"""
+@font-face {{
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url({data_uri('newsreader-latin.woff2')}) format('woff2');
+}}
+@font-face {{
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url({data_uri('newsreader-latin-italic.woff2')}) format('woff2');
+}}
+"""
+
+
+# The palette is a committed dark theme: this product is read at midnight.
+# Amber is the lone accent (dossier stamp / terminal phosphor); green and
+# red are semantic only and never decorate.
+_SITE_CSS = """
+:root {
+  --ink: #0b0e14; --panel: #121826; --panel-2: #0f141d; --line: #26303f;
+  --text: #e3e9f2; --dim: #8a96a8; --amber: #e5a13c; --amber-dim: #9c7434;
+  --good: #5bc49a; --bad: #e0685c;
+  --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--ink); color: var(--text);
+  font: 16px/1.65 var(--sans);
+}
+main { max-width: 960px; margin: 0 auto; padding: 0 1.25rem 5rem; }
+a { color: var(--amber); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 2px; }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 4rem;
+}
+.wordmark { font: 600 .85rem var(--mono); letter-spacing: .22em; color: var(--text); }
+.wordmark em { color: var(--amber); font-style: normal; }
+.topbar a.cta-link { font: 500 .78rem var(--mono); letter-spacing: .08em; }
+
+.eyebrow {
+  font: 500 .7rem var(--mono); letter-spacing: .2em; text-transform: uppercase;
+  color: var(--amber); margin: 0 0 1rem;
+}
+.hero h1 {
+  font: 600 clamp(2.5rem, 6vw, 4.1rem)/1.07 var(--serif);
+  letter-spacing: -.015em; margin: 0 0 1.25rem; max-width: 20ch; text-wrap: balance;
+}
+.hero .sub { font-size: 1.12rem; color: var(--dim); max-width: 58ch; margin: 0 0 2rem; }
+.cta-row { display: flex; gap: .9rem; flex-wrap: wrap; margin-bottom: 3.5rem; }
+.btn {
+  display: inline-block; font: 600 .85rem var(--mono); letter-spacing: .04em;
+  padding: .85rem 1.5rem; border-radius: 3px; cursor: pointer; border: 1px solid transparent;
+}
+.btn.solid { background: var(--amber); color: var(--ink); }
+.btn.solid:hover { background: #f0b458; text-decoration: none; }
+.btn.ghost { border-color: var(--line); color: var(--text); background: transparent; }
+.btn.ghost:hover { border-color: var(--amber-dim); text-decoration: none; }
+
+.chart-frame {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px;
+  padding: 1.25rem 1.25rem .75rem; overflow-x: auto;
+}
+.chart-frame .cap {
+  font: 500 .68rem var(--mono); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); margin: .5rem 0 0;
+}
+svg .grid { stroke: var(--line); stroke-width: 1; }
+svg .lbl { font: 500 10.5px var(--mono); letter-spacing: .08em; fill: var(--dim); }
+svg .lbl.amber { fill: var(--amber); }
+svg .mapline { stroke: var(--dim); stroke-width: 1.5; stroke-dasharray: 6 5; fill: none; }
+svg .market { stroke: var(--amber); stroke-width: 2.25; fill: none;
+  stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: draw 2.4s ease-out .4s forwards; }
+svg .gapfill { fill: rgba(229, 161, 60, .09); opacity: 0; animation: appear .9s ease-out 2.4s forwards; }
+svg .delta { opacity: 0; animation: appear .7s ease-out 2.7s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes appear { to { opacity: 1; } }
+
+.ticker-wrap {
+  border-block: 1px solid var(--line); margin: 4.5rem 0; padding: .7rem 0;
+  overflow: hidden; white-space: nowrap;
+}
+.ticker { display: inline-block; animation: tick 46s linear infinite; }
+.ticker-wrap:hover .ticker { animation-play-state: paused; }
+.ticker span { font: 500 .74rem var(--mono); letter-spacing: .06em; color: var(--dim); margin-right: 3.5rem; }
+.ticker span b { color: var(--amber); font-weight: 600; }
+@keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+section.block { margin: 5rem 0; }
+.rule-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.25rem; }
+.rule-head::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.block h2 { font: 600 1.9rem/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 .6rem; text-wrap: balance; }
+.block > p.lede { color: var(--dim); max-width: 62ch; margin: 0 0 2rem; }
+
+.gaps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.gaps article { background: var(--panel-2); padding: 1.6rem 1.4rem; }
+.gaps h3 { font: 500 .7rem var(--mono); letter-spacing: .18em; color: var(--amber); margin: 0 0 .8rem; }
+.gaps p { margin: 0; color: var(--dim); font-size: .95rem; }
+.gaps p strong { color: var(--text); font-weight: 600; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: step; }
+.steps li {
+  display: grid; grid-template-columns: 3.5rem 1fr; gap: 1.25rem;
+  padding: 1.5rem 0; border-top: 1px solid var(--line);
+}
+.steps li:last-child { border-bottom: 1px solid var(--line); }
+.steps .num { font: 500 1.5rem var(--serif); font-style: italic; color: var(--amber); }
+.steps h3 { font: 600 1.15rem var(--serif); margin: 0 0 .3rem; display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
+.steps p { margin: 0; color: var(--dim); font-size: .95rem; max-width: 62ch; }
+.chip {
+  font: 600 .62rem var(--mono); letter-spacing: .16em; color: var(--dim);
+  border: 1px solid var(--line); border-radius: 2px; padding: .15rem .5rem; white-space: nowrap;
+}
+
+.artifact-embed iframe {
+  width: 100%; height: 660px; border: 1px solid var(--line); border-radius: 4px;
+  background: #fff;
+}
+.artifact-points { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.25rem; }
+.artifact-points div { font: 500 .74rem var(--mono); letter-spacing: .08em; color: var(--dim); }
+.artifact-points b { color: var(--text); }
+
+.tenets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem 3rem; }
+.tenets h3 { font: 600 1.05rem var(--serif); margin: 0 0 .35rem; }
+.tenets p { margin: 0; color: var(--dim); font-size: .92rem; }
+
+form.clearance { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 2rem; display: grid; gap: 1.4rem; }
+form.clearance label { display: grid; gap: .5rem; }
+form.clearance label > span { font: 600 .95rem var(--serif); }
+form.clearance input, form.clearance textarea {
+  background: var(--ink); border: 1px solid var(--line); border-radius: 3px;
+  color: var(--text); font: 400 .95rem var(--sans); padding: .7rem .8rem; width: 100%;
+}
+form.clearance input:focus, form.clearance textarea:focus { border-color: var(--amber-dim); outline: none; }
+form.clearance .fine { font-size: .8rem; color: var(--dim); margin: 0; }
+
+.footer {
+  margin-top: 6rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.footer .motto { font: 500 .72rem var(--mono); letter-spacing: .22em; color: var(--dim); }
+.footer .note { font-size: .78rem; color: var(--dim); max-width: 46ch; }
+.footer .note i { font-family: var(--serif); }
+
+@media (prefers-reduced-motion: reduce) {
+  svg .market { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
+  svg .gapfill, svg .delta { opacity: 1; animation: none; }
+  .ticker { animation: none; }
+  html { scroll-behavior: auto; }
+}
+"""
 
 _TRACK_JS = """
 (function () {
@@ -88,10 +262,10 @@ _TRACK_JS = """
     if (!form.dataset.endpoint) {
       ev.preventDefault();
       var data = new FormData(form);
-      var lines = ['Brier Zero waitlist signup (variant ' + v + ')'];
+      var lines = ['Brier Zero pilot request (variant ' + v + ')'];
       data.forEach(function (val, key) { lines.push(key + ': ' + val); });
       location.href = 'mailto:' + form.dataset.mailto +
-        '?subject=' + encodeURIComponent('Brier Zero waitlist (' + v + ')') +
+        '?subject=' + encodeURIComponent('Brier Zero pilot request (' + v + ')') +
         '&body=' + encodeURIComponent(lines.join('\\n'));
     }
   });
@@ -115,6 +289,214 @@ _ROUTER_JS_TEMPLATE = """
 })();
 """
 
+# Demo numbers the hero chart draws: the dashboard's flat 90% vs the agent
+# market walking down to 35%.
+_MARKET_PATH = [
+    (0.00, 0.78), (0.11, 0.74), (0.22, 0.71), (0.33, 0.64), (0.44, 0.60),
+    (0.55, 0.54), (0.66, 0.47), (0.78, 0.41), (0.89, 0.37), (1.00, 0.35),
+]
+
+
+def _divergence_chart() -> str:
+    w, h, pad = 840, 300, 42
+    def x(f: float) -> float:
+        return pad + f * (w - 2 * pad)
+    def y(p: float) -> float:
+        return pad + (1 - p) * (h - 2 * pad)
+
+    map_y = y(0.90)
+    pts = " ".join(f"{x(f):.1f},{y(p):.1f}" for f, p in _MARKET_PATH)
+    gap_poly = (
+        pts + " " + " ".join(f"{x(f):.1f},{map_y:.1f}" for f, _ in reversed(_MARKET_PATH))
+    )
+    grid = "".join(
+        f'<line class="grid" x1="{pad}" y1="{y(g):.1f}" x2="{w-pad}" y2="{y(g):.1f}"/>'
+        f'<text class="lbl" x="6" y="{y(g)+4:.1f}">{int(g*100)}%</text>'
+        for g in (0.2, 0.4, 0.6, 0.8, 1.0)
+    )
+    end_x, end_y = x(1.0), y(0.35)
+    return f"""
+<svg viewBox="0 0 {w} {h}" role="img"
+     aria-label="Chart: the internal dashboard holds at 90 percent while the agent market falls to 35 percent — a 55 point gap.">
+  {grid}
+  <polygon class="gapfill" points="{gap_poly}"/>
+  <line class="mapline" x1="{pad}" y1="{map_y:.1f}" x2="{w-pad}" y2="{map_y:.1f}"/>
+  <text class="lbl" x="{pad}" y="{map_y-9:.1f}">THE MAP — program dashboard · 90%</text>
+  <polyline class="market" points="{pts}"/>
+  <circle class="delta" cx="{end_x:.1f}" cy="{end_y:.1f}" r="4" fill="var(--amber)"/>
+  <text class="lbl amber delta" x="{end_x-215:.1f}" y="{end_y+26:.1f}">THE TERRITORY — agent market · 35%</text>
+  <g class="delta">
+    <line class="grid" x1="{end_x:.1f}" y1="{map_y:.1f}" x2="{end_x:.1f}" y2="{end_y:.1f}" stroke-dasharray="3 3"/>
+    <text class="lbl amber" x="{end_x-52:.1f}" y="{(map_y+end_y)/2:.1f}">Δ 55 PTS</text>
+  </g>
+</svg>"""
+
+
+_TICKER_ITEMS = [
+    ("SURPRISE ASSUMPTION", "‘thermal validation passed’ appears nowhere in the official map"),
+    ("MAP STALE", "dashboard dated 120 days before the newest strong evidence"),
+    ("DIVERGENCE 55 PTS", "gap analysis auto-generated — what does the map not know?"),
+    ("PSEUDONYMOUS SIGNAL", "verified employee · −9 pts · identity mathematically stripped"),
+    ("SKILL AUDIT", "‘press-scan’ heuristic flagged dead weight after 3 resolutions"),
+    ("MAP FIDELITY 0/100", "displayed confidence widened — a confident agent with a bad map is dangerous"),
+]
+
+
+def _ticker() -> str:
+    seq = "".join(f"<span><b>{esc(k)}</b> — {esc(v)}</span>" for k, v in _TICKER_ITEMS)
+    # Content duplicated once so the -50% translate loops seamlessly.
+    return f'<div class="ticker-wrap" aria-hidden="true"><div class="ticker">{seq}{seq}</div></div>'
+
+
+def _body(variant: HeroVariant, demo_artifact_html: str,
+          waitlist_endpoint: str, contact_email: str) -> str:
+    questions = "".join(
+        f'<label><span>{esc(q)}</span><textarea name="{esc(key)}" rows="2"></textarea></label>'
+        for key, q in _QUALIFY_QUESTIONS
+    )
+    endpoint_attrs = (
+        f' action="{esc(waitlist_endpoint)}" method="post" data-endpoint="1"'
+        if waitlist_endpoint else f' data-mailto="{esc(contact_email)}"'
+    )
+    srcdoc = esc(demo_artifact_html)
+    return f"""
+<main>
+<nav class="topbar">
+  <span class="wordmark">BRIER<em>//</em>ZERO</span>
+  <a class="cta-link" href="#clearance">REQUEST BRIEFING →</a>
+</nav>
+
+<header class="hero">
+  <p class="eyebrow">Agent-only prediction markets · map/territory detection</p>
+  <h1>{esc(variant.headline)}</h1>
+  <p class="sub">{esc(variant.subline)}</p>
+  <div class="cta-row">
+    <a class="btn solid" href="#clearance">{esc(variant.cta)}</a>
+    <a class="btn ghost" href="#artifact">Open a live artifact ↓</a>
+  </div>
+  <div class="chart-frame">
+    {_divergence_chart()}
+    <p class="cap">Live demo market · “Will Apple ship a production passenger car by December 31, 2028?”</p>
+  </div>
+</header>
+
+{_ticker()}
+
+<section class="block">
+  <div class="rule-head"><p class="eyebrow" style="margin:0">Why this exists</p></div>
+  <h2>Weak teams fail loudly. Strong teams fail quietly.</h2>
+  <p class="lede">A confident wrong assumption doesn't crash — it propagates across three
+  quarters of planning before anyone inspects it. Three gaps let it happen.</p>
+  <div class="gaps">
+    <article>
+      <h3>The Leak Gap</h3>
+      <p>Your best people know a project is failing <strong>years</strong> before your
+      dashboard does. With no safe internal channel, that truth goes to a journalist —
+      for clout. You lose the narrative. They gain nothing but risk.</p>
+    </article>
+    <article>
+      <h3>The Map Gap</h3>
+      <p>Roadmaps, dashboards, status decks — every org runs on maps. The more capable
+      the team, the more dangerous a stale map becomes, because <strong>nobody checks it
+      against the territory</strong> until the write-off.</p>
+    </article>
+    <article>
+      <h3>The Artifact Gap</h3>
+      <p>The one signal you needed is buried on page forty of a chat transcript.
+      Intelligence that can't be <strong>opened, clicked, and forwarded</strong> doesn't
+      change decisions.</p>
+    </article>
+  </div>
+</section>
+
+<section class="block">
+  <div class="rule-head"><p class="eyebrow" style="margin:0">How it works</p></div>
+  <h2>Five moves from question to calibrated truth.</h2>
+  <ol class="steps">
+    <li><span class="num">i</span><div>
+      <h3>You ask a real question</h3>
+      <p>“Will the vehicle program ship by 2028?” — with resolution criteria a lawyer
+      could referee. Vague markets are rejected at creation.</p>
+    </div></li>
+    <li><span class="num">ii</span><div>
+      <h3>The agent restates it back <span class="chip">RESTATEMENT PROTOCOL</span></h3>
+      <p>Before a single trade, the research agent paraphrases your question and lists
+      every assumption it's trading on. If one surprises you, the market is flagged —
+      a surprised founder is a gap caught early, for free.</p>
+    </div></li>
+    <li><span class="num">iii</span><div>
+      <h3>Research agents trade — humans never do <span class="chip">BRIER-SCORED</span></h3>
+      <p>Agents weigh source credibility, pool evidence, and price the question.
+      Reputation-weighted, difficulty-adjusted, no gambling surface, no regulatory
+      ambiguity. The score is a research metric, not a payout.</p>
+    </div></li>
+    <li><span class="num">iv</span><div>
+      <h3>Your people whisper <span class="chip">PSEUDONYMOUS · CAPPED ±15 PTS</span></h3>
+      <p>SSO proves employment; HMAC strips identity. A whisper becomes a bounded
+      probability signal — the market gets the truth, nobody gets a name, and no single
+      voice can own the price.</p>
+    </div></li>
+    <li><span class="num">v</span><div>
+      <h3>Every resolution audits the machine <span class="chip">META-CALIBRATION</span></h3>
+      <p>After each market resolves, every research skill that touched it is scored.
+      Methods that stop predicting get flagged as dead weight and down-weighted. The
+      engine distrusts its own map, too.</p>
+    </div></li>
+  </ol>
+</section>
+
+<section class="block artifact-embed" id="artifact">
+  <div class="rule-head"><p class="eyebrow" style="margin:0">The deliverable</p></div>
+  <h2>Not a dashboard. A file.</h2>
+  <p class="lede">This is a real market artifact, embedded live. Four layers of
+  progressive disclosure — headline probability for the board, raw audit trail for the
+  regulator. It opens in any browser, forever, with no login. Click through it.</p>
+  <iframe srcdoc="{srcdoc}" title="Live Brier Zero demo artifact" loading="lazy"></iframe>
+  <div class="artifact-points">
+    <div><b>SELF-CONTAINED</b> · zero external requests</div>
+    <div><b>HOVER-TO-VERIFY</b> · every claim shows its exact source</div>
+    <div><b>FIDELITY-WEIGHTED</b> · confidence shown as a band, not a point</div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="rule-head"><p class="eyebrow" style="margin:0">Built for orgs that can't talk</p></div>
+  <div class="tenets">
+    <div><h3>No human trading, ever.</h3>
+      <p>No pump-and-dump, no insider-trading surface, no gambling mechanics. Agent-only
+      by design — which is also why it's fast.</p></div>
+    <div><h3>Pseudonymity is math, not policy.</h3>
+      <p>HMAC-SHA256 pseudonyms are stable inside one market and unlinkable across
+      markets. We couldn't dox your engineers if we were subpoenaed to.</p></div>
+    <div><h3>The artifact is yours.</h3>
+      <p>Take the file and leave, any day. The thing you'd miss is the ongoing
+      calibration that produces the next one.</p></div>
+    <div><h3>Honesty about our own map.</h3>
+      <p>A market with low map fidelity is displayed as high variance even when agents
+      are confident. Epistemic humility, enforced in the renderer.</p></div>
+  </div>
+</section>
+
+<section class="block" id="clearance">
+  <div class="rule-head"><p class="eyebrow" style="margin:0">Request clearance</p></div>
+  <h2>Four questions. If none of them sting, you don't need us yet.</h2>
+  <form id="waitlist" class="clearance"{endpoint_attrs}>
+    <label><span>Work email</span><input type="email" name="email" required></label>
+    {questions}
+    <p><button type="submit" class="btn solid">{esc(variant.cta)}</button></p>
+    <p class="fine">Answers stay between us — they calibrate the pilot, not a CRM
+    sequence. Design-partner pilots are limited to five organizations this fall.</p>
+  </form>
+</section>
+
+<footer class="footer">
+  <span class="motto">THE MAP IS NOT THE TERRITORY.</span>
+  <p class="note"><i>Brier score</i>, n. — the mean squared error of a probabilistic
+  forecast. Zero is perfect. We're named after the direction of travel.</p>
+</footer>
+</main>
+"""
+
 
 def render_variant(
     variant: HeroVariant,
@@ -122,65 +504,65 @@ def render_variant(
     waitlist_endpoint: str = "",
     contact_email: str = "hello@brier.zero",
 ) -> str:
-    questions = "".join(
-        f'<label><p><strong>{esc(q)}</strong></p>'
-        f'<textarea name="{esc(key)}" rows="2" style="width:100%"></textarea></label>'
-        for key, q in _QUALIFY_QUESTIONS
-    )
-    endpoint_attrs = (
-        f' action="{esc(waitlist_endpoint)}" method="post" data-endpoint="1"'
-        if waitlist_endpoint else f' data-mailto="{esc(contact_email)}"'
-    )
-    # The live demo is embedded whole via iframe srcdoc so the landing page
-    # stays one file and the artifact stays interactive (PRD 8.2).
-    srcdoc = esc(demo_artifact_html)
-    body = f"""
-<section class="card" style="text-align:center; padding:3rem 1.5rem">
-  <h1 style="font-size:2rem">{esc(variant.headline)}</h1>
-  <p style="max-width:640px;margin:.75rem auto">{esc(variant.subline)}</p>
-  <p><a href="#waitlist-section" class="badge good" style="font-size:1rem;padding:.5rem 1.25rem">{esc(variant.cta)}</a></p>
-  <p class="muted">Agent-only prediction markets &middot; no human trading &middot; no gambling mechanics</p>
-</section>
-
-<h2>Open the live artifact — this is the product</h2>
-<p class="muted">A real Brier Zero market artifact, embedded here. Click through all four layers.
-No login. If this page were an email attachment, it would still work.</p>
-<iframe srcdoc="{srcdoc}" style="width:100%;height:640px;border:1px solid var(--line);border-radius:10px"
-        title="Live Brier Zero demo artifact" loading="lazy"></iframe>
-
-<section id="waitlist-section">
-  <h2>Battle-test signup</h2>
-  <p class="muted">Four questions. If none of them sting, Brier Zero isn't for you yet.</p>
-  <form id="waitlist" class="card"{endpoint_attrs}>
-    <label><p><strong>Work email</strong></p><input type="email" name="email" required style="width:100%"></label>
-    {questions}
-    <p><button type="submit" class="badge good" style="font-size:1rem;padding:.5rem 1.5rem;cursor:pointer">
-      {esc(variant.cta)}</button></p>
-  </form>
-</section>
+    body = _body(variant, demo_artifact_html, waitlist_endpoint, contact_email)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="{esc(variant.subline)}">
+<title>Brier Zero — the Map/Territory Detection Engine</title>
+<style>{_font_css()}{_SITE_CSS}</style>
+</head>
+<body data-variant="{variant.key}">
+{body}
+<script>{_TRACK_JS}</script>
+</body>
+</html>
 """
-    page = base.page(
-        f"Brier Zero — {variant.name}",
-        body,
-        subtitle="The Map/Territory Detection Engine",
-        extra_js=_TRACK_JS,
+
+
+def render_artifact_preview(
+    demo_artifact_html: str,
+    variant: HeroVariant | None = None,
+    contact_email: str = "hello@brier.zero",
+) -> str:
+    """Skeleton-less page for artifact hosts that wrap content themselves."""
+    v = variant or VARIANTS[1]  # Map is Not Territory is the house thesis
+    body = _body(v, demo_artifact_html, waitlist_endpoint="", contact_email=contact_email)
+    # Artifact hosts stamp their own <body>; carry the variant on <main>
+    # and mirror it onto body at runtime for the tracker.
+    body = body.replace("<main>", f'<main data-variant="{v.key}">', 1)
+    boot = "document.body.dataset.variant = document.querySelector('main').dataset.variant;"
+    return (
+        f"<title>Brier Zero — the Map/Territory Detection Engine</title>"
+        f"<style>{_font_css()}{_SITE_CSS}"
+        "body{background:var(--ink) !important;color:var(--text) !important;}</style>"
+        f"{body}<script>{boot}{_TRACK_JS}</script>"
     )
-    # Tag the body so the tracker knows which variant it is on.
-    return page.replace("<body>", f'<body data-variant="{variant.key}">', 1)
 
 
 def render_router() -> str:
     keys = json.dumps([v.key for v in VARIANTS])
-    body = (
-        '<p class="muted">Assigning you a variant&hellip; '
-        '<noscript>JavaScript is off — pick one: '
-        + " · ".join(f'<a href="landing-{v.key}.html">{esc(v.name)}</a>' for v in VARIANTS)
-        + "</noscript></p>"
-    )
-    return base.page(
-        "Brier Zero", body,
-        extra_js=_ROUTER_JS_TEMPLATE % {"variants": keys},
-    )
+    links = " · ".join(f'<a href="landing-{v.key}.html">{esc(v.name)}</a>' for v in VARIANTS)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Brier Zero</title>
+<style>body{{background:#0b0e14;color:#8a96a8;font:16px/1.6 ui-monospace,monospace;
+display:grid;place-items:center;min-height:100vh;margin:0}}a{{color:#e5a13c}}</style>
+</head>
+<body>
+<p>Assigning you a variant&hellip;
+<noscript>JavaScript is off — pick one: {links}</noscript></p>
+<script>{_ROUTER_JS_TEMPLATE % {"variants": keys}}</script>
+</body>
+</html>
+"""
 
 
 def render_all(demo_artifact_html: str, waitlist_endpoint: str = "") -> dict[str, str]:

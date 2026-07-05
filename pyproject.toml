@@ -16,3 +16,6 @@ brier-zero-demo = "brier_zero.demo:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+brier_zero = ["artifacts/assets/*.woff2"]
