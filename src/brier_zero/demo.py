@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .artifacts import audit_report, gap, landing, market as market_art, slider, source as source_art
+from .artifacts import arena, audit_report, gap, landing, market as market_art, slider, source as source_art
 from .engine import MarketEngine
 from .models import AssumptionStatus, OfficialMap, Question, Source, Whisper, utcnow
 from .proxy import EmployeeDirectory, EmployeeProxyAgent
@@ -148,6 +148,7 @@ def build_demo(out_dir: Path) -> dict[str, Path]:
     write("gap-report.html", gap.render(mkt))
     for name, page_html in landing.render_all(human_html).items():
         write(name, page_html)
+    write("arena.html", arena.render(arena.simulate_season()))
 
     # Resolve a *copy-style* second market quickly to exercise the audit
     # pipeline and produce a skill audit artifact (BZ-302).
