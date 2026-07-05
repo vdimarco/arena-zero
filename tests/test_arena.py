@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from brier_zero.artifacts import arena
@@ -53,22 +54,35 @@ class TestArenaPage(unittest.TestCase):
         for marker in ('<link rel="stylesheet"', 'src="http'):
             self.assertNotIn(marker, self.html)
 
-    def test_leaderboard_structure(self):
-        for needle in ("standings-body", "standings-data", "HUMAN CROWD",
-                       "SIMULATED SEASON", 'data-scope="All"', "Calibration"):
+    def test_ask_loop_structure(self):
+        for needle in ('id="ask-form"', 'id="theater"', 'data-key="tapeout"',
+                       "Restatement", "SIMULATED", "HUMAN CROWD"):
             self.assertIn(needle, self.html)
-        for domain in arena.DOMAINS:
-            escaped = domain.replace("&", "&amp;")
-            self.assertIn(f'data-scope="{escaped}"', self.html)
 
-    def test_scale_ladder_present(self):
-        for n in ("N = 1<", "N = 1,000<", "N = 1,000,000<"):
-            self.assertIn(n, self.html)
+    def test_demo_payload_embedded(self):
+        # Every demo question ships with agent forecasts and a consensus the
+        # theater can animate — the magic moment is data, not lorem.
+        for needle in ('"forecasts"', '"consensus"', '"assumptions"'):
+            self.assertIn(needle, self.html)
+        for q in arena._DEMO_QUESTIONS:
+            self.assertIn(json.dumps(q["key"]), self.html)
+
+    def test_crowd_row_is_last_in_standings(self):
+        board = self.html.split('class="board-lite"', 1)[1].split("</table>", 1)[0]
+        rows = board.split("<tr")[1:]
+        self.assertIn("HUMAN CROWD", rows[-1])
+        self.assertNotIn("HUMAN CROWD", "".join(rows[:-1]))
+
+    def test_no_stray_format_specifiers(self):
+        # The ask-loop JS is %-formatted at render time: doubled %% must have
+        # collapsed to literal % in the output, none left behind.
+        self.assertNotIn("%%", self.html)
+        self.assertIn("+ '%'", self.html)
 
     def test_artifact_preview_variant(self):
         preview = arena.render_artifact_preview(arena.simulate_season(seed=7))
         self.assertFalse(preview.startswith("<!DOCTYPE"))
-        self.assertIn("standings-data", preview)
+        self.assertIn('id="ask-form"', preview)
 
 
 if __name__ == "__main__":
