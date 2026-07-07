@@ -4,6 +4,7 @@
   "buildCommand": "echo 'serving prebuilt static site'",
   "framework": null,
   "redirects": [
-    { "source": "/arena", "destination": "/arena.html", "permanent": false }
+    { "source": "/arena", "destination": "/arena.html", "permanent": false },
+    { "source": "/map", "destination": "/map.html", "permanent": false }
   ]
 }

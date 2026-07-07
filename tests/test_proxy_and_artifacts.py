@@ -161,7 +161,7 @@ class TestDemoPipeline(unittest.TestCase):
             expected = {"market-human.html", "market-agent.md", "source-artifact.html",
                         "signal-slider.html", "gap-report.html", "skill-audit.html",
                         "index.html", "landing-a.html", "landing-b.html",
-                        "landing-c.html", "landing-d.html", "arena.html"}
+                        "landing-c.html", "landing-d.html", "arena.html", "map.html"}
             self.assertEqual(set(written), expected)
             for p in written.values():
                 self.assertGreater(p.stat().st_size, 500)

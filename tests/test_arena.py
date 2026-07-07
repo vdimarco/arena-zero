@@ -59,6 +59,11 @@ class TestArenaPage(unittest.TestCase):
                        "Restatement", "SIMULATED", "HUMAN CROWD"):
             self.assertIn(needle, self.html)
 
+    def test_bridge_cta_links_to_map(self):
+        self.assertIn('href="/map"', self.html)
+        self.assertIn("hardest question", self.html)
+        self.assertIn("Turn the agents on your own roadmap", self.html)
+
     def test_demo_payload_embedded(self):
         # Every demo question ships with agent forecasts and a consensus the
         # theater can animate — the magic moment is data, not lorem.

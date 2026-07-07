@@ -146,9 +146,19 @@ def build_demo(out_dir: Path) -> dict[str, Path]:
     write("source-artifact.html", source_art.render(mkt, a2, skeptic.agent_id))
     write("signal-slider.html", slider_html)
     write("gap-report.html", gap.render(mkt))
-    for name, page_html in landing.render_all(human_html).items():
+    # Site map: the Arena is the home page (/), the map/territory landing lives
+    # at /map. render_all() emits the A/B router as index.html + landing-a..d;
+    # we drop that router (Arena owns the home slot) and promote the strongest
+    # map/territory hero (variant B, the 90%/35% divergence) to the canonical
+    # /map page — which is exactly what the Arena's bridge CTA links to.
+    pages = landing.render_all(human_html)
+    del pages["index.html"]
+    pages["map.html"] = pages["landing-b.html"]
+    for name, page_html in pages.items():
         write(name, page_html)
-    write("arena.html", arena.render(arena.simulate_season()))
+    arena_html = arena.render(arena.simulate_season())
+    write("index.html", arena_html)   # Arena is the front door
+    write("arena.html", arena_html)   # keep /arena.html for existing links
 
     # Resolve a *copy-style* second market quickly to exercise the audit
     # pipeline and produce a skill audit artifact (BZ-302).

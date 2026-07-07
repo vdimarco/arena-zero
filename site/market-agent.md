@@ -1,9 +1,9 @@
-# market-agent: mkt_96345ffd4b27
+# market-agent: mkt_dad5618d3ce0
 
 ## Intent
 - question: Will Apple ship a production passenger car by December 31, 2028?
 - resolution_criteria: Resolves YES if Apple (or a subsidiary) makes a passenger road vehicle available for consumer purchase or lease in any market before the close date. Concept vehicles, partnerships without an Apple-branded vehicle, and CarPlay integrations do not count.
-- close_at: 2028-12-23T05:48:54.756058+00:00
+- close_at: 2028-12-23T13:04:28.997463+00:00
 - status: open
 - current_price: 0.3546
 - map_fidelity: 0

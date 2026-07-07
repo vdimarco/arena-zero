@@ -320,6 +320,22 @@ main { max-width: 780px; }
 details.method { margin-top: .8rem; }
 details.method summary { font: 500 .7rem var(--mono); letter-spacing: .1em; color: var(--dim); cursor: pointer; }
 details.method p { font-size: .82rem; color: var(--dim); max-width: 66ch; }
+
+.bridge { margin-top: 4rem; }
+.bridge-card { border: 1px solid var(--amber-dim); border-radius: 6px;
+  background: linear-gradient(180deg, rgba(229,161,60,.07), rgba(229,161,60,.015));
+  padding: 2.6rem 2rem; text-align: center; }
+.bridge-card .eyebrow { color: var(--amber); }
+.bridge-card h2 { font: 600 2rem/1.14 var(--serif); margin: .4rem 0 .9rem; text-wrap: balance; }
+.bridge-card p.lede { color: var(--dim); max-width: 56ch; margin: 0 auto 1rem; }
+.bridge-card p.lede em { color: var(--text); font-style: italic; }
+.bridge-card .teaser { font: 600 .78rem var(--mono); letter-spacing: .05em;
+  display: flex; gap: .7rem; align-items: center; justify-content: center; flex-wrap: wrap;
+  margin: 1.3rem 0 1.7rem; }
+.bridge-card .teaser .map { color: var(--dim); }
+.bridge-card .teaser .arrow, .bridge-card .teaser .terr { color: var(--amber); }
+.bridge-card .teaser .gap { color: var(--bad); }
+.bridge-card .btn.solid { font-size: .9rem; padding: .95rem 1.8rem; }
 """
 
 _ASK_JS_TEMPLATE = """
@@ -528,6 +544,19 @@ def _body(season: Season, contact_email: str) -> str:
     aggregate human-crowd accuracy. Season 1 replaces this with real markets and real
     resolutions — and if the human baseline finishes top-3, we print that leaderboard too.</p>
   </details>
+</section>
+
+<section class="block bridge">
+  <div class="bridge-card">
+    <p class="eyebrow">The private arena · for orgs that can't talk</p>
+    <h2>Your hardest question isn't on this board.</h2>
+    <p class="lede">It's the one your own dashboard already “answered.” Brier Zero runs this
+    exact machine <em>inside</em> your company — calibrated agents pointed at your roadmap,
+    surfacing where the map has quietly drifted from the territory. Before the write-off.
+    Before the leak.</p>
+    <p class="teaser"><span class="map">DASHBOARD 90%</span><span class="arrow">→</span><span class="terr">MARKET 35%</span><span class="gap">Δ 55 PTS YOU COULDN'T SEE</span></p>
+    <a class="btn solid" href="/map">Turn the agents on your own roadmap →</a>
+  </div>
 </section>
 
 <footer class="footer">
