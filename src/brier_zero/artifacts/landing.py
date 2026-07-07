@@ -100,6 +100,43 @@ def _font_css() -> str:
 """
 
 
+# --- Analytics -------------------------------------------------------------
+# PostHog funnel for the DEPLOYED marketing pages only. The self-contained
+# artifacts and the claude.ai artifact-preview renders never get this (they'd
+# be CSP-blocked and must stay dependency-free).
+#
+# NOTE: this is the `beacons.fyi` PostHog project token from the working
+# session. Swap POSTHOG_TOKEN for an Uptick-specific project key if you want
+# the Arena/landing funnel in its own project — it's a one-line change.
+POSTHOG_TOKEN = "phc_qJhL6oTSfz4mCCVFb5s9CuJpPiQfRj5QY83eY3SLE8jM"
+POSTHOG_HOST = "https://us.i.posthog.com"
+
+# Load array.js async, init on load, fire a variant-tagged pageview. All other
+# capture() calls are user-triggered (post-load), so the guarded cap() helpers
+# in the page scripts are always safe.
+_PH_LOADER = """<script>
+(function(){
+  try {
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = '__HOST__'.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js';
+    s.onload = function(){
+      posthog.init('__TOKEN__', {api_host: '__HOST__', person_profiles: 'identified_only'});
+      try {
+        var v = (document.body && document.body.dataset) ? document.body.dataset.variant : undefined;
+        posthog.capture('$pageview', {variant: v});
+      } catch(e) {}
+    };
+    document.head.appendChild(s);
+  } catch(e) {}
+})();
+</script>"""
+
+
+def _analytics() -> str:
+    return _PH_LOADER.replace("__TOKEN__", POSTHOG_TOKEN).replace("__HOST__", POSTHOG_HOST)
+
+
 # The palette is a committed dark theme: this product is read at midnight.
 # Amber is the lone accent (dossier stamp / terminal phosphor); green and
 # red are semantic only and never decorate.
@@ -246,28 +283,16 @@ form.clearance .fine { font-size: .8rem; color: var(--dim); margin: 0; }
 _TRACK_JS = """
 (function () {
   var v = document.body.dataset.variant;
-  try {
-    var log = JSON.parse(localStorage.getItem('bz_events') || '[]');
-    log.push({event: 'view', variant: v, at: new Date().toISOString()});
-    localStorage.setItem('bz_events', JSON.stringify(log));
-  } catch (e) {}
+  function cap(ev, props) { try { if (window.posthog && posthog.capture) posthog.capture(ev, props || {}); } catch (e) {} }
   var form = document.getElementById('waitlist');
   if (!form) return;
   form.addEventListener('submit', function (ev) {
-    try {
-      var log = JSON.parse(localStorage.getItem('bz_events') || '[]');
-      log.push({event: 'signup_submit', variant: v, at: new Date().toISOString()});
-      localStorage.setItem('bz_events', JSON.stringify(log));
-    } catch (e) {}
-    if (!form.dataset.endpoint) {
-      ev.preventDefault();
-      var data = new FormData(form);
-      var lines = ['Brier Zero pilot request (variant ' + v + ')'];
-      data.forEach(function (val, key) { lines.push(key + ': ' + val); });
-      location.href = 'mailto:' + form.dataset.mailto +
-        '?subject=' + encodeURIComponent('Brier Zero pilot request (' + v + ')') +
-        '&body=' + encodeURIComponent(lines.join('\\n'));
-    }
+    ev.preventDefault();
+    var data = {variant: v};
+    new FormData(form).forEach(function (val, key) { data[key] = val; });
+    try { if (data.email && window.posthog && posthog.identify) posthog.identify(data.email, {email: data.email}); } catch (e) {}
+    cap('waitlist_signup', data);
+    form.innerHTML = '<p style="font:600 1.05rem var(--serif)">\\u2713 Logged. We read every one \\u2014 expect a note from a human, not a drip sequence.</p>';
   });
 })();
 """
@@ -513,6 +538,7 @@ def render_variant(
 <meta name="color-scheme" content="dark">
 <meta name="description" content="{esc(variant.subline)}">
 <title>Brier Zero — the Map/Territory Detection Engine</title>
+{_analytics()}
 <style>{_font_css()}{_SITE_CSS}</style>
 </head>
 <body data-variant="{variant.key}">

@@ -130,6 +130,15 @@ class TestArtifacts(unittest.TestCase):
         self.assert_selfcontained(html)
         self.assertIn("Map Fidelity", html)
 
+    def test_landing_analytics_deployed_only(self):
+        demo = market_art.render_human(self.market)
+        deployed = landing.render_variant(landing.VARIANTS[0], demo)
+        self.assertIn("posthog.init", deployed)
+        self.assertIn("waitlist_signup", deployed)
+        preview = landing.render_artifact_preview(demo)
+        self.assertNotIn("posthog.init", preview)
+        self.assertNotIn("array.js", preview)
+
     def test_landing_variants_and_router(self):
         demo = market_art.render_human(self.market)
         pages = landing.render_all(demo)

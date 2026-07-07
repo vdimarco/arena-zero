@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 
 from ..scoring import Leaderboard, brier_index, brier_score, calibration_curve
 from .base import esc
-from .landing import _SITE_CSS, _font_css
+from .landing import _SITE_CSS, _analytics, _font_css
 
 DOMAINS = ["Geopolitics", "Compute & Chips", "Biotech", "Energy & Climate", "Markets", "Space"]
 
@@ -331,6 +331,7 @@ _ASK_JS_TEMPLATE = """
   var input = document.getElementById('q');
   var timers = [];
 
+  function cap(ev, props) { try { if (window.posthog && posthog.capture) posthog.capture(ev, props || {}); } catch (e) {} }
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
   function later(fn, ms) { if (reduced) { fn(); } else { timers.push(setTimeout(fn, ms)); } }
   function el(tag, cls, html) {
@@ -375,9 +376,15 @@ _ASK_JS_TEMPLATE = """
     bd.appendChild(v);
     v.querySelector('#route-btn').addEventListener('click', function () {
       var em = v.querySelector('#route-email').value;
-      location.href = 'mailto:' + MAILTO +
-        '?subject=' + encodeURIComponent('Route this question to the agents') +
-        '&body=' + encodeURIComponent('Question: ' + question + '\\nFrom: ' + em);
+      cap('route_question', {question: question, email: em});
+      try { if (em && window.posthog && posthog.identify) posthog.identify(em, {email: em}); } catch (e) {}
+      if (window.posthog && posthog.capture) {
+        v.querySelector('.route').innerHTML = '<p style="font:600 1rem var(--serif)">\\u2713 Routed. A human follows up \\u2014 not a bot, ironically.</p>';
+      } else {
+        location.href = 'mailto:' + MAILTO +
+          '?subject=' + encodeURIComponent('Route this question to the agents') +
+          '&body=' + encodeURIComponent('Question: ' + question + '\\nFrom: ' + em);
+      }
     });
   }
 
@@ -420,6 +427,7 @@ _ASK_JS_TEMPLATE = """
           'Every number above is <b>Season 0</b> demo output from the open-source engine. ' +
           'Your real question gets real agents, real sources, and a resolution date.',
           question);
+        cap('theater_completed', {mode: 'demo', question: question, consensus: target});
         var n = document.getElementById('big-n');
         if (reduced) { n.textContent = target + '%%'; return; }
         var v = 0, step = Math.max(1, Math.round(target / 28));
@@ -438,6 +446,7 @@ _ASK_JS_TEMPLATE = """
           'The restatement above ran on your words \\u2014 that\\u2019s the protocol every market ' +
           'starts with. To get the calibrated answer, route it to the live agents.',
           question);
+        cap('theater_completed', {mode: 'custom', question: question});
       }, t += 700);
     }
     later(function () { theater.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); }, 150);
@@ -448,12 +457,14 @@ _ASK_JS_TEMPLATE = """
     var text = input.value.trim();
     if (!text) return;
     var demo = DEMOS.find(function (d) { return d.text === text; });
+    cap('ask_submitted', {mode: demo ? 'demo' : 'custom', question: text});
     run(demo || null, text);
   });
   document.querySelectorAll('.chips button').forEach(function (b) {
     b.addEventListener('click', function () {
       var demo = DEMOS.find(function (d) { return d.key === b.dataset.key; });
       input.value = demo.text;
+      cap('ask_submitted', {mode: 'chip', key: b.dataset.key, question: demo.text});
       run(demo, demo.text);
     });
   });
@@ -541,6 +552,7 @@ def render(season: Season | None = None, contact_email: str = "hello@brier.zero"
 <meta name="color-scheme" content="dark">
 <meta name="description" content="Ask the agents: a calibrated probability, the assumption you didn't state, and the track record of whoever answered.">
 <title>Brier Zero Arena — ask the agents</title>
+{_analytics()}
 <style>{_font_css()}{_SITE_CSS}{_ARENA_CSS}</style>
 </head>
 <body data-variant="arena">

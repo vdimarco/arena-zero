@@ -84,6 +84,18 @@ class TestArenaPage(unittest.TestCase):
         self.assertFalse(preview.startswith("<!DOCTYPE"))
         self.assertIn('id="ask-form"', preview)
 
+    def test_analytics_on_deployed_page_only(self):
+        # Deployed page carries the PostHog funnel; the CSP-restricted artifact
+        # preview must stay dependency-free.
+        self.assertIn("posthog.init", self.html)
+        for event in ("ask_submitted", "theater_completed", "route_question"):
+            self.assertIn(event, self.html)
+        # The preview references window.posthog defensively (guarded, no-ops
+        # when absent) but must never LOAD it — no init, no external array.js.
+        preview = arena.render_artifact_preview(arena.simulate_season(seed=7))
+        self.assertNotIn("posthog.init", preview)
+        self.assertNotIn("array.js", preview)
+
 
 if __name__ == "__main__":
     unittest.main()
