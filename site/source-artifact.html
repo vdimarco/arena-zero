@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source Artifact — Will Apple ship a production passenger car by December 31, 2028?</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1d23; --muted: #5b6472; --line: #e3e6ea;
+  --card: #f6f7f9; --accent: #3d5afe; --good: #1a7f37; --warn: #b45309;
+  --bad: #b42318; --band: rgba(61, 90, 254, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101318; --fg: #e6e9ee; --muted: #9aa4b2; --line: #2a3038;
+    --card: #181d24; --accent: #7c93ff; --good: #4ade80; --warn: #fbbf24;
+    --bad: #f87171; --band: rgba(124, 147, 255, .16);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 2rem 1rem 4rem; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+main { max-width: 880px; margin: 0 auto; }
+h1 { font-size: 1.5rem; line-height: 1.3; margin: 0 0 .25rem; }
+h2 { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
+h3 { font-size: .95rem; margin: 1rem 0 .35rem; }
+p { margin: .4rem 0; }
+.muted { color: var(--muted); font-size: .85rem; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.25rem; margin: .75rem 0; }
+.headline { display: flex; flex-wrap: wrap; gap: 1rem; align-items: baseline; }
+.prob { font-size: 3rem; font-weight: 700; letter-spacing: -.02em; }
+.badge { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; border: 1px solid var(--line); }
+.badge.good { color: var(--good); border-color: var(--good); }
+.badge.warn { color: var(--warn); border-color: var(--warn); }
+.badge.bad  { color: var(--bad);  border-color: var(--bad); }
+details.layer { border: 1px solid var(--line); border-radius: 10px; margin: .75rem 0; background: var(--card); }
+details.layer > summary {
+  cursor: pointer; padding: .8rem 1.25rem; font-weight: 600; list-style: none;
+  display: flex; justify-content: space-between; align-items: center;
+}
+details.layer > summary::after { content: "+"; color: var(--muted); font-weight: 400; }
+details.layer[open] > summary::after { content: "\2212"; }
+details.layer > .inner { padding: 0 1.25rem 1rem; border-top: 1px solid var(--line); overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.scroll { overflow-x: auto; }
+.claim { border-bottom: 1px dashed var(--accent); cursor: help; position: relative; }
+.claim .tip {
+  visibility: hidden; opacity: 0; transition: opacity .15s; position: absolute;
+  left: 0; top: 1.6em; z-index: 10; width: min(420px, 80vw); background: var(--card);
+  color: var(--fg); border: 1px solid var(--line); border-radius: 8px;
+  padding: .6rem .8rem; font-size: .8rem; box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+.claim:hover .tip, .claim:focus-within .tip { visibility: visible; opacity: 1; }
+.heat { display: flex; gap: 4px; flex-wrap: wrap; }
+.heat .cell { width: 84px; padding: .5rem .4rem; border-radius: 8px; font-size: .72rem; text-align: center; color: #fff; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.footer { margin-top: 3rem; font-size: .75rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: .75rem; }
+svg text { fill: var(--muted); font-size: 11px; }
+svg .axis { stroke: var(--line); }
+svg .series { stroke: var(--accent); fill: none; stroke-width: 2; }
+svg .area { fill: var(--band); stroke: none; }
+svg .mapline { stroke: var(--warn); stroke-dasharray: 5 4; stroke-width: 1.5; }
+</style>
+</head>
+<body>
+<main>
+<h1>Source Artifact — Will Apple ship a production passenger car by December 31, 2028?</h1>
+<p class="muted">Evidence backing agent_program_history&#x27;s position on market mkt_fe7e0d0cdf9f</p>
+<section class="card" data-layer="1"><h2>Assessment</h2><div class="headline"><span class="prob">5%</span><span><span class="badge good">3 sources</span></span></div><p>Pooled 3 evidence item(s) (0 supporting YES) weighted by source trust; posterior P=5%.</p><p class="muted">Research agent agent_program_history &middot; skills: skill_program_history, skill_hiring_signals</p></section><details class="layer" data-layer="2" open><summary>Layer 2 &mdash; Claims — hover to verify against exact source text</summary><div class="inner"><p><span class="claim" tabindex="0">Supports NO — Veteran program leads depart for rival<span class="tip">&ldquo;Three senior vehicle program leaders left in the past two quarters.&rdquo;<br><em>www.bloomberg.com &middot; trust 60% &middot; 2026-06-17</em></span></span> <span class="muted">(strength 70%)</span></p><p><span class="claim" tabindex="0">Supports NO — Thermal validation failures delay milestone<span class="tip">&ldquo;People familiar with the program describe repeated thermal validation failures pushing the integration milestone.&rdquo;<br><em>arstechnica.com &middot; trust 80% &middot; 2026-06-27</em></span></span> <span class="muted">(strength 80%)</span></p><p><span class="claim" tabindex="0">Supports NO — Historical base rate: new-entrant car programs slip<span class="tip">&ldquo;Across 14 new-entrant vehicle programs since 2005, median slip from announced ship date was 26 months.&rdquo;<br><em>example-research.edu &middot; trust 70% &middot; 2025-12-19</em></span></span> <span class="muted">(strength 60%)</span></p></div></details><details class="layer" data-layer="3"><summary>Layer 3 &mdash; Side-by-side source comparison</summary><div class="inner"><div class="scroll"><table><tr><th>source</th><th>domain</th><th>published</th><th>side</th><th>strength</th><th>trust</th><th>key snippet</th></tr><tr><td>Thermal validation failures delay milestone</td><td>arstechnica.com</td><td>2026-06-27</td><td>NO</td><td>80%</td><td>80%</td><td>&ldquo;People familiar with the program describe repeated thermal validation failures pushing the integration milestone.&rdquo;</td></tr><tr><td>Historical base rate: new-entrant car programs slip</td><td>example-research.edu</td><td>2025-12-19</td><td>NO</td><td>60%</td><td>70%</td><td>&ldquo;Across 14 new-entrant vehicle programs since 2005, median slip from announced ship date was 26 months.&rdquo;</td></tr><tr><td>Veteran program leads depart for rival</td><td>www.bloomberg.com</td><td>2026-06-17</td><td>NO</td><td>70%</td><td>60%</td><td>&ldquo;Three senior vehicle program leaders left in the past two quarters.&rdquo;</td></tr></table></div></div></details><details class="layer" data-layer="4"><summary>Layer 4 &mdash; Event timeline vs market creation</summary><div class="inner"><svg viewBox="0 0 780 142" role="img" aria-label="event timeline"><line class="axis" x1="20" y1="120" x2="760" y2="120"/><line class="mapline" x1="760.0" y1="12" x2="760.0" y2="120"/><text x="620.0" y="12">market created 2026-07-07</text><circle cx="20.0" cy="120" r="4" fill="currentColor"/><line class="axis" x1="20.0" y1="30" x2="20.0" y2="120"/><text x="26.0" y="26">2025-12-19 &mdash; Historical base rate: new-entrant car programs slip</text><circle cx="686.0" cy="120" r="4" fill="currentColor"/><line class="axis" x1="686.0" y1="64" x2="686.0" y2="120"/><text x="480.0" y="60">2026-06-17 &mdash; Veteran program leads depart for rival</text><circle cx="723.0" cy="120" r="4" fill="currentColor"/><line class="axis" x1="723.0" y1="98" x2="723.0" y2="120"/><text x="480.0" y="94">2026-06-27 &mdash; Thermal validation failures delay milestone</text></svg></div></details>
+<div class="footer">Brier Zero artifact &middot; self-contained &middot; generated 2026-07-07 04:44 &middot; no backend required</div>
+</main>
+<script>
+// Progressive disclosure layer manager: deep-linkable (#layer-3 opens 1..3),
+// and each expansion is recorded for the audit trail (layer 4).
+(function () {
+  var opened = [];
+  document.querySelectorAll('details.layer').forEach(function (d) {
+    d.addEventListener('toggle', function () {
+      if (d.open) opened.push({layer: d.dataset.layer, at: new Date().toISOString()});
+      var log = document.getElementById('disclosure-log');
+      if (log) log.textContent = JSON.stringify(opened, null, 2);
+    });
+  });
+  var m = location.hash.match(/^#layer-([1-4])$/);
+  if (m) {
+    document.querySelectorAll('details.layer').forEach(function (d) {
+      if (+d.dataset.layer <= +m[1]) d.open = true;
+    });
+  }
+})();
+</script>
+</body>
+</html>

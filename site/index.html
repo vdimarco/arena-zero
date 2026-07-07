@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Brier Zero</title>
+<style>body{background:#0b0e14;color:#8a96a8;font:16px/1.6 ui-monospace,monospace;
+display:grid;place-items:center;min-height:100vh;margin:0}a{color:#e5a13c}</style>
+</head>
+<body>
+<p>Assigning you a variant&hellip;
+<noscript>JavaScript is off — pick one: <a href="landing-a.html">The Apple Case</a> · <a href="landing-b.html">Map is Not Territory</a> · <a href="landing-c.html">Artifact-Native</a> · <a href="landing-d.html">Calibrated Forecasting Engine</a></noscript></p>
+<script>
+(function () {
+  var variants = ["a", "b", "c", "d"];
+  var params = new URLSearchParams(location.search);
+  var forced = params.get('v');
+  var v = forced && variants.indexOf(forced) >= 0 ? forced : null;
+  try {
+    if (!v) v = localStorage.getItem('bz_variant');
+    if (!v || variants.indexOf(v) < 0) {
+      v = variants[Math.floor(Math.random() * variants.length)];
+    }
+    localStorage.setItem('bz_variant', v);
+  } catch (e) { v = v || variants[0]; }
+  location.replace('landing-' + v + '.html' + location.hash);
+})();
+</script>
+</body>
+</html>

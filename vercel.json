@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "site",
+  "buildCommand": "echo 'serving prebuilt static site'",
+  "framework": null,
+  "redirects": [
+    { "source": "/arena", "destination": "/arena.html", "permanent": false }
+  ]
+}
