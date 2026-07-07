@@ -105,10 +105,9 @@ def _font_css() -> str:
 # artifacts and the claude.ai artifact-preview renders never get this (they'd
 # be CSP-blocked and must stay dependency-free).
 #
-# NOTE: this is the `beacons.fyi` PostHog project token from the working
-# session. Swap POSTHOG_TOKEN for an Uptick-specific project key if you want
-# the Arena/landing funnel in its own project — it's a one-line change.
-POSTHOG_TOKEN = "phc_qJhL6oTSfz4mCCVFb5s9CuJpPiQfRj5QY83eY3SLE8jM"
+# Client API key for the "Uptick HQ" PostHog project (id 500056). Public by
+# design (it's a client-side ingest key). Swap here to retarget the funnel.
+POSTHOG_TOKEN = "phc_uueVktK2gaALRxPpXzdMWE6PYZiNgGhEeE7qLoMUJviP"
 POSTHOG_HOST = "https://us.i.posthog.com"
 
 # Load array.js async, init on load, fire a variant-tagged pageview. All other

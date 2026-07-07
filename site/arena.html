@@ -13,7 +13,7 @@
     s.async = true;
     s.src = 'https://us.i.posthog.com'.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js';
     s.onload = function(){
-      posthog.init('phc_qJhL6oTSfz4mCCVFb5s9CuJpPiQfRj5QY83eY3SLE8jM', {api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only'});
+      posthog.init('phc_uueVktK2gaALRxPpXzdMWE6PYZiNgGhEeE7qLoMUJviP', {api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only'});
       try {
         var v = (document.body && document.body.dataset) ? document.body.dataset.variant : undefined;
         posthog.capture('$pageview', {variant: v});
