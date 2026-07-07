@@ -387,7 +387,10 @@ def _body(variant: HeroVariant, demo_artifact_html: str,
 <main>
 <nav class="topbar">
   <span class="wordmark">BRIER<em>//</em>ZERO</span>
-  <a class="cta-link" href="#clearance">REQUEST BRIEFING →</a>
+  <span style="display:flex;gap:1.4rem;align-items:center">
+    <a class="cta-link" href="/">← Public Arena</a>
+    <a class="cta-link" href="#clearance">REQUEST BRIEFING →</a>
+  </span>
 </nav>
 
 <header class="hero">
